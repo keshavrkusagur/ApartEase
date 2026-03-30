@@ -385,39 +385,159 @@ export default function ResidentDashboard() {
 );
 
   const renderBills = () => (
-    <div>
-      {[...new Set(expenses.map(e => e.month))].map(month => {
-        const monthExpenses = expenses.filter(e => e.month === month);
-        const monthTotal = monthExpenses.reduce((sum, e) => sum + (e.per_house_amount || 0), 0);
-        return (
-          <div key={month} className="res-glass res-panel"
-            style={{ background: t.cardBg, borderColor: t.cardBorder, marginBottom: "16px" }}>
-            <div className="res-panel-title" style={{ color: t.cardTitleColor }}>
-              {month}
-              <span style={{ fontSize: "13px", fontWeight: 700, color: t.isDark ? "#34d399" : "#16a34a" }}>
-                ₹{Math.round(monthTotal).toLocaleString("en-IN")} total
-              </span>
-            </div>
-            {monthExpenses.map((e, i) => (
-              <div key={i} style={{ display: "flex", justifyContent: "space-between", padding: "8px 0", borderBottom: i < monthExpenses.length - 1 ? `1px solid ${t.cardBorder}` : "none" }}>
-                <div>
-                  <div style={{ fontSize: "13px", color: t.cardTitleColor }}>{e.title}</div>
-                  <div style={{ fontSize: "10px", color: t.statLabelColor, textTransform: "capitalize", marginTop: "2px" }}>{e.category}</div>
-                </div>
-                <div style={{ textAlign: "right" }}>
-                  <div style={{ fontSize: "13px", fontWeight: 600, color: t.statValueColor }}>₹{e.per_house_amount?.toLocaleString("en-IN")}</div>
-                  <div style={{ fontSize: "10px", color: t.statLabelColor }}>your share</div>
+  <div>
+    {[...new Set(expenses.map(e => e.month))].map(month => {
+      const monthExpenses = expenses.filter(e => e.month === month);
+      const monthTotal = monthExpenses.reduce((sum, e) => sum + (e.per_house_amount || 0), 0);
+      
+      // Find payment status for this month
+      const monthPayment = payments.find(p => p.month === month);
+      const isPaid = monthPayment?.status === "paid";
+
+      return (
+        <div key={month} className="res-glass res-panel"
+          style={{ background: t.cardBg, borderColor: t.cardBorder, marginBottom: "16px" }}>
+          
+          {/* Month header */}
+          <div className="res-panel-title" style={{ color: t.cardTitleColor }}>
+            {month}
+            <span style={{ fontSize: "13px", fontWeight: 700, color: t.isDark ? "#34d399" : "#16a34a" }}>
+              ₹{Math.round(monthTotal).toLocaleString("en-IN")} total
+            </span>
+          </div>
+
+          {/* Bill rows */}
+          {monthExpenses.map((e, i) => (
+            <div key={i} style={{
+              display: "flex", justifyContent: "space-between",
+              padding: "10px 0",
+              borderBottom: i < monthExpenses.length - 1 ? `1px solid ${t.cardBorder}` : "none"
+            }}>
+              <div>
+                <div style={{ fontSize: "13px", color: t.cardTitleColor }}>{e.title}</div>
+                <div style={{ fontSize: "10px", color: t.statLabelColor, textTransform: "capitalize", marginTop: "2px" }}>
+                  {e.category}
                 </div>
               </div>
-            ))}
+              <div style={{ textAlign: "right" }}>
+                <div style={{ fontSize: "13px", fontWeight: 600, color: t.statValueColor }}>
+                  ₹{e.per_house_amount?.toLocaleString("en-IN")}
+                </div>
+                <div style={{ fontSize: "10px", color: t.statLabelColor }}>your share</div>
+              </div>
+            </div>
+          ))}
+
+          {/* Total + Pay button */}
+          <div style={{
+            marginTop: "16px", paddingTop: "14px",
+            borderTop: `1px solid ${t.cardBorder}`,
+            display: "flex", justifyContent: "space-between", alignItems: "center"
+          }}>
+            <div>
+              <div style={{ fontSize: "11px", color: t.statLabelColor, marginBottom: "2px" }}>
+                Total due
+              </div>
+              <div style={{
+                fontSize: "22px", fontWeight: 700,
+                fontFamily: "'Syne', sans-serif", color: t.statValueColor
+              }}>
+                ₹{Math.round(monthTotal).toLocaleString("en-IN")}
+              </div>
+            </div>
+
+            {isPaid ? (
+              <div style={{
+                padding: "10px 24px", borderRadius: "12px",
+                background: t.isDark ? "rgba(16,185,129,0.15)" : "rgba(34,197,94,0.1)",
+                color: t.isDark ? "#34d399" : "#16a34a",
+                fontSize: "13px", fontWeight: 600,
+                border: `1px solid ${t.isDark ? "rgba(16,185,129,0.3)" : "rgba(34,197,94,0.3)"}`,
+                display: "flex", alignItems: "center", gap: "6px"
+              }}>
+                ✅ Paid on {new Date(monthPayment.paid_at).toLocaleDateString("en-IN", { day: "numeric", month: "short" })}
+              </div>
+            ) : (
+              <button
+                onClick={() => handlePayNow(month, monthTotal, monthPayment)}
+                style={{
+                  padding: "12px 28px", borderRadius: "12px",
+                  background: t.accentColor,
+                  color: "#fff", border: "none",
+                  fontSize: "14px", fontWeight: 600,
+                  cursor: "pointer", fontFamily: "'Syne', sans-serif",
+                  boxShadow: `0 4px 16px ${t.accentColor}44`,
+                  transition: "transform 0.15s, opacity 0.15s",
+                }}
+                onMouseEnter={e => e.target.style.opacity = "0.85"}
+                onMouseLeave={e => e.target.style.opacity = "1"}
+              >
+                Pay Now ₹{Math.round(monthTotal).toLocaleString("en-IN")}
+              </button>
+            )}
           </div>
-        );
-      })}
-      {expenses.length === 0 && (
-        <div style={{ textAlign: "center", padding: "48px", color: t.statLabelColor }}>No bills found</div>
-      )}
-    </div>
-  );
+        </div>
+      );
+    })}
+    {expenses.length === 0 && (
+      <div style={{ textAlign: "center", padding: "48px", color: t.statLabelColor }}>
+        No bills found
+      </div>
+    )}
+  </div>
+);
+const handlePayNow = (month, amount, existingPayment) => {
+  const options = {
+    key: import.meta.env.VITE_RAZORPAY_KEY_ID,
+    amount: Math.round(amount * 100), // Razorpay needs paise (₹1 = 100 paise)
+    currency: "INR",
+    name: "ApartEase",
+    description: `Maintenance — ${month}`,
+    image: "/favicon.ico",
+    handler: async function (response) {
+      // Payment successful — update status in Supabase
+      if (existingPayment) {
+        await supabase
+          .from("payments")
+          .update({
+            status: "paid",
+            paid_at: new Date().toISOString(),
+            razorpay_payment_id: response.razorpay_payment_id,
+          })
+          .eq("id", existingPayment.id);
+      } else {
+        // Create new payment record if doesn't exist
+        await supabase.from("payments").insert({
+          resident_id: profile.id,
+          flat_number: profile.flat_number,
+          month: month,
+          amount: amount,
+          status: "paid",
+          paid_at: new Date().toISOString(),
+          razorpay_payment_id: response.razorpay_payment_id,
+        });
+      }
+
+      // Refresh data
+      await fetchData();
+      alert(`✅ Payment successful! ID: ${response.razorpay_payment_id}`);
+    },
+    prefill: {
+      name: profile?.full_name || "Resident",
+      email: profile?.email || "",
+      contact: profile?.phone || "",
+    },
+    theme: {
+      color: t.accentColor,
+    },
+    modal: {
+      ondismiss: () => console.log("Payment cancelled"),
+    },
+  };
+
+  const rzp = new window.Razorpay(options);
+  rzp.open();
+};
 
   const renderNotices = () => (
     <div>
