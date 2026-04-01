@@ -25,7 +25,8 @@ const themes = {
     sidebarBg: "#FFF0E0",
     sidebarBorder: "#FFD4A0",
     // Logo
-    logoIconBg: "linear-gradient(135deg,#FF6B35,#F7931E)",
+    logoIconBg: "linear-gradient(135deg,#FF6B35,#F7931E)"
+    ,
     logoAccent: "#FF6B35",
     logoColor: "#1a1a1a",
     // Nav

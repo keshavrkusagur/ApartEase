@@ -50,9 +50,9 @@ const handleSignIn = async (e) => {
   setLoading(false);
 
   if (profile?.role === "admin") {
-    navigate("/admin", { replace: true });   // ✅ direct
+    navigate("/admin", { replace: true });   
   } else {
-    navigate("/resident", { replace: true }); // ✅ direct
+    navigate("/resident", { replace: true }); 
   }
 };
 
