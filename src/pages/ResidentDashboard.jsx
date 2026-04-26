@@ -389,15 +389,13 @@ export default function ResidentDashboard() {
     {[...new Set(expenses.map(e => e.month))].map(month => {
       const monthExpenses = expenses.filter(e => e.month === month);
       const monthTotal = monthExpenses.reduce((sum, e) => sum + (e.per_house_amount || 0), 0);
-      
-      // Find payment status for this month
       const monthPayment = payments.find(p => p.month === month);
       const isPaid = monthPayment?.status === "paid";
 
       return (
         <div key={month} className="res-glass res-panel"
           style={{ background: t.cardBg, borderColor: t.cardBorder, marginBottom: "16px" }}>
-          
+
           {/* Month header */}
           <div className="res-panel-title" style={{ color: t.cardTitleColor }}>
             {month}
@@ -411,11 +409,15 @@ export default function ResidentDashboard() {
             <div key={i} style={{
               display: "flex", justifyContent: "space-between",
               padding: "10px 0",
-              borderBottom: i < monthExpenses.length - 1 ? `1px solid ${t.cardBorder}` : "none"
+              borderBottom: i < monthExpenses.length - 1
+                ? `1px solid ${t.cardBorder}` : "none"
             }}>
               <div>
                 <div style={{ fontSize: "13px", color: t.cardTitleColor }}>{e.title}</div>
-                <div style={{ fontSize: "10px", color: t.statLabelColor, textTransform: "capitalize", marginTop: "2px" }}>
+                <div style={{
+                  fontSize: "10px", color: t.statLabelColor,
+                  textTransform: "capitalize", marginTop: "2px"
+                }}>
                   {e.category}
                 </div>
               </div>
@@ -455,7 +457,9 @@ export default function ResidentDashboard() {
                 border: `1px solid ${t.isDark ? "rgba(16,185,129,0.3)" : "rgba(34,197,94,0.3)"}`,
                 display: "flex", alignItems: "center", gap: "6px"
               }}>
-                ✅ Paid on {new Date(monthPayment.paid_at).toLocaleDateString("en-IN", { day: "numeric", month: "short" })}
+                ✅ Paid on {new Date(monthPayment.paid_at).toLocaleDateString("en-IN", {
+                  day: "numeric", month: "short"
+                })}
               </div>
             ) : (
               <button
@@ -467,7 +471,7 @@ export default function ResidentDashboard() {
                   fontSize: "14px", fontWeight: 600,
                   cursor: "pointer", fontFamily: "'Syne', sans-serif",
                   boxShadow: `0 4px 16px ${t.accentColor}44`,
-                  transition: "transform 0.15s, opacity 0.15s",
+                  transition: "opacity 0.15s",
                 }}
                 onMouseEnter={e => e.target.style.opacity = "0.85"}
                 onMouseLeave={e => e.target.style.opacity = "1"}
@@ -486,41 +490,47 @@ export default function ResidentDashboard() {
     )}
   </div>
 );
-const handlePayNow = (month, amount, existingPayment) => {
+const handlePayNow = async (month, amount, existingPayment) => {
   const options = {
     key: import.meta.env.VITE_RAZORPAY_KEY_ID,
-    amount: Math.round(amount * 100), // Razorpay needs paise (₹1 = 100 paise)
+    amount: Math.round(amount * 100), // convert to paise
     currency: "INR",
     name: "ApartEase",
     description: `Maintenance — ${month}`,
     image: "/favicon.ico",
     handler: async function (response) {
-      // Payment successful — update status in Supabase
-      if (existingPayment) {
-        await supabase
-          .from("payments")
-          .update({
+      try {
+        if (existingPayment) {
+          // Update existing payment
+          await supabase
+            .from("payments")
+            .update({
+              status: "paid",
+              paid_at: new Date().toISOString(),
+              razorpay_payment_id: response.razorpay_payment_id,
+            })
+            .eq("id", existingPayment.id);
+        } else {
+          // Create new payment record
+          await supabase.from("payments").insert({
+            resident_id: profile.id,
+            flat_number: profile.flat_number,
+            month: month,
+            amount: amount,
             status: "paid",
             paid_at: new Date().toISOString(),
             razorpay_payment_id: response.razorpay_payment_id,
-          })
-          .eq("id", existingPayment.id);
-      } else {
-        // Create new payment record if doesn't exist
-        await supabase.from("payments").insert({
-          resident_id: profile.id,
-          flat_number: profile.flat_number,
-          month: month,
-          amount: amount,
-          status: "paid",
-          paid_at: new Date().toISOString(),
-          razorpay_payment_id: response.razorpay_payment_id,
-        });
-      }
+          });
+        }
 
-      // Refresh data
-      await fetchData();
-      alert(`✅ Payment successful! ID: ${response.razorpay_payment_id}`);
+        // Refresh data
+        await fetchData();
+
+        alert(`✅ Payment successful!\nID: ${response.razorpay_payment_id}`);
+      } catch (err) {
+        console.error("Payment update error:", err);
+        alert("Payment done but failed to update. Contact admin.");
+      }
     },
     prefill: {
       name: profile?.full_name || "Resident",
@@ -531,7 +541,7 @@ const handlePayNow = (month, amount, existingPayment) => {
       color: t.accentColor,
     },
     modal: {
-      ondismiss: () => console.log("Payment cancelled"),
+      ondismiss: () => console.log("Payment cancelled by user"),
     },
   };
 
