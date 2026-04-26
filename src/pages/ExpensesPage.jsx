@@ -13,13 +13,15 @@ import SearchIcon from "@mui/icons-material/Search";
 import AddIcon from "@mui/icons-material/Add";
 import DeleteIcon from "@mui/icons-material/Delete";
 
-const emptyForm = { title: "", category: "water", total_amount: "", month: "", bill_date: "" };
+const emptyForm = { title: "", category: "", total_amount: "", month: "", bill_date: "" };
 
 const categoryColors = {
-  water: { bg: "rgba(59,130,246,0.15)", color: "#60a5fa" },
+  scavenger: { bg: "rgba(251,146,60,0.15)", color: "#fb923c" },
+  bwssb: { bg: "rgba(59,130,246,0.15)", color: "#60a5fa" },
   electricity: { bg: "rgba(251,191,36,0.15)", color: "#fbbf24" },
-  security: { bg: "rgba(16,185,129,0.15)", color: "#34d399" },
+  "security salary": { bg: "rgba(16,185,129,0.15)", color: "#34d399" },
   cleaning: { bg: "rgba(167,139,250,0.15)", color: "#a78bfa" },
+  "lift maintenance": { bg: "rgba(236,72,153,0.15)", color: "#ec4899" },
   other: { bg: "rgba(156,163,175,0.15)", color: "#9ca3af" },
 };
 
@@ -324,11 +326,13 @@ const handleDelete = async () => {
             <Select value={form.category} label="Category"
               onChange={(e) => setForm({ ...form, category: e.target.value })}
               sx={{ color: textPrimary, "& .MuiOutlinedInput-notchedOutline": { borderColor: tableBorder } }}>
-              <MenuItem value="water">Water</MenuItem>
+              <MenuItem value="scavenger">Scavenger</MenuItem>
+              <MenuItem value="bwssb">BWSSB</MenuItem>
               <MenuItem value="electricity">Electricity</MenuItem>
-              <MenuItem value="security">Security</MenuItem>
+              <MenuItem value="security salary">Security Salary</MenuItem>
               <MenuItem value="cleaning">Cleaning</MenuItem>
-              <MenuItem value="other">Other</MenuItem>
+              <MenuItem value="lift maintenance">Lift Maintenance</MenuItem>
+              <MenuItem value="other">Others</MenuItem>
             </Select>
           </FormControl>
           <TextField label="Total Amount (₹)" fullWidth size="small" type="number"
