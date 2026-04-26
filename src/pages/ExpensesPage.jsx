@@ -64,16 +64,10 @@ export default function ExpensesPage({ theme }) {
 
 const handleSave = async () => {
   setSaving(true);
-
   try {
-    console.log("1. Starting save...");
-    console.log("2. Supabase URL:", import.meta.env.VITE_SUPABASE_URL);
-    console.log("3. Form data:", form);
-
-    const { data: { session } } = await supabase.auth.getSession();
-    console.log("4. Session:", session?.user?.id);
-
-    const { data, error } = await supabase
+    const perHouse = parseFloat(form.total_amount) / 24;
+    
+    const { error } = await supabase
       .from("expenses")
       .insert({
         title: form.title,
@@ -83,26 +77,46 @@ const handleSave = async () => {
         bill_date: form.bill_date || null,
       });
 
-    console.log("5. Insert data:", data);
-    console.log("6. Insert error:", error);
+if (!error) {
+  //Calculate total for this month
+  const { data: allExpenses } = await supabase
+    .from("expenses")
+    .select("per_house_amount")
+    .eq("month", form.month);
 
-    if (error) {
-      alert("Error: " + error.message);
-      setSaving(false);
-      return;
-    }
+  const newTotal = allExpenses?.reduce((sum, e) => sum + (e.per_house_amount || 0), 0) || 0;
+
+  // Update all payments for this month to reflect total
+  await supabase
+    .from("payments")
+    .update({ amount: newTotal })
+    .eq("month", form.month)
+    .neq("status", "paid"); 
+
+  // Notify all residents
+  await sendNotificationToAll(
+    "due_reminder",
+    `New bill added — ${form.title}`,
+    `₹${Math.round(parseFloat(form.total_amount) / 24).toLocaleString("en-IN")} added. Your total for ${form.month} is now ₹${Math.round(newTotal).toLocaleString("en-IN")}.`
+  );
+}
 
     setSaving(false);
     setDialogOpen(false);
     setForm(emptyForm);
     fetchExpenses();
-
   } catch (err) {
-    console.log("7. Catch error:", err.message);
     alert("Error: " + err.message);
     setSaving(false);
   }
-};
+}
+  const handleDelete = async () => {
+    const { error } = await supabase.from("expenses").delete().eq("id", selectedExpense.id);
+    if (error) console.error(error);
+    setDeleteDialogOpen(false);
+    setSelectedExpense(null);
+    fetchExpenses();
+  };
 
   const totalAmount = expenses.reduce((sum, e) => sum + (e.total_amount || 0), 0);
   const thisMonth = new Date().toLocaleString("default", { month: "long", year: "numeric" });
