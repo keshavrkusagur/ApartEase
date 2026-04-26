@@ -68,14 +68,15 @@ const handleSave = async () => {
     const perHouse = parseFloat(form.total_amount) / 24;
     
     const { error } = await supabase
-      .from("expenses")
-      .insert({
-        title: form.title,
-        category: form.category,
-        total_amount: parseFloat(form.total_amount),
-        month: form.month,
-        bill_date: form.bill_date || null,
-      });
+  .from("expenses")
+  .insert({
+    title: form.title,
+    category: form.category,
+    total_amount: parseFloat(form.total_amount),
+    per_house_amount: parseFloat(form.total_amount) / 24,
+    month: form.month,
+    bill_date: form.bill_date || null,
+  });
 
 if (!error) {
   //Calculate total for this month
