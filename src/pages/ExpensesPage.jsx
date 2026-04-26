@@ -63,61 +63,102 @@ export default function ExpensesPage({ theme }) {
   };
 
 const handleSave = async () => {
+  if (saving) return;
   setSaving(true);
-  try {
-    const perHouse = parseFloat(form.total_amount) / 24;
-    
-    const { error } = await supabase
-  .from("expenses")
-  .insert({
-    title: form.title,
-    category: form.category,
-    total_amount: parseFloat(form.total_amount),
-    per_house_amount: parseFloat(form.total_amount) / 24,
-    month: form.month,
-    bill_date: form.bill_date || null,
-  });
 
-if (!error) {
-  //Calculate total for this month
+  const { error } = await supabase
+    .from("expenses")
+    .insert({
+      title: form.title,
+      category: form.category,
+      total_amount: parseFloat(form.total_amount),
+      per_house_amount: parseFloat(form.total_amount) / 24,
+      month: form.month,
+      bill_date: form.bill_date || null,
+    });
+
+  if (error) {
+    alert("Error: " + error.message);
+    setSaving(false);
+    return;
+  }
+
+  // Recalculate total for this month
   const { data: allExpenses } = await supabase
     .from("expenses")
     .select("per_house_amount")
     .eq("month", form.month);
 
-  const newTotal = allExpenses?.reduce((sum, e) => sum + (e.per_house_amount || 0), 0) || 0;
+  const newTotal = allExpenses?.reduce(
+    (sum, e) => sum + (e.per_house_amount || 0), 0
+  ) || 0;
 
-  // Update all payments for this month to reflect total
-  await supabase
-    .from("payments")
-    .update({ amount: newTotal })
-    .eq("month", form.month)
-    .neq("status", "paid"); 
+  // Get all residents
+  const { data: residents } = await supabase
+    .from("profiles")
+    .select("id, flat_number")
+    .eq("role", "resident");
 
-  // Notify all residents
-  await sendNotificationToAll(
-    "due_reminder",
-    `New bill added — ${form.title}`,
-    `₹${Math.round(parseFloat(form.total_amount) / 24).toLocaleString("en-IN")} added. Your total for ${form.month} is now ₹${Math.round(newTotal).toLocaleString("en-IN")}.`
-  );
-}
+  // Upsert payment for each resident — update if exists, insert if not
+  if (residents?.length > 0) {
+  for (const resident of residents) {
+    // Check if payment exists first
+    const { data: existing } = await supabase
+      .from("payments")
+      .select("id")
+      .eq("resident_id", resident.id)
+      .eq("month", form.month)
+      .maybeSingle();
 
-    setSaving(false);
-    setDialogOpen(false);
-    setForm(emptyForm);
-    fetchExpenses();
-  } catch (err) {
-    alert("Error: " + err.message);
-    setSaving(false);
+    if (existing) {
+      // Update existing payment amount
+      await supabase
+        .from("payments")
+        .update({ amount: newTotal })
+        .eq("id", existing.id)
+        .neq("status", "paid"); // don't update if already paid
+    } else {
+      // Insert new payment
+      await supabase
+        .from("payments")
+        .insert({
+          resident_id: resident.id,
+          flat_number: resident.flat_number,
+          month: form.month,
+          amount: newTotal,
+          status: "pending",
+        });
+    }
   }
 }
-  const handleDelete = async () => {
-    const { error } = await supabase.from("expenses").delete().eq("id", selectedExpense.id);
-    if (error) console.error(error);
-    setDeleteDialogOpen(false);
-    setSelectedExpense(null);
-    fetchExpenses();
-  };
+
+  try {
+    await sendNotificationToAll(
+      "due_reminder",
+      `New bill added — ${form.title}`,
+      `₹${Math.round(parseFloat(form.total_amount) / 24).toLocaleString("en-IN")} added to your ${form.month} dues. Total now ₹${Math.round(newTotal).toLocaleString("en-IN")}.`
+    );
+  } catch (e) {
+    console.log("Notification error:", e);
+  }
+
+  setSaving(false);
+  setDialogOpen(false);
+  setForm(emptyForm);
+  fetchExpenses();
+};
+const handleDelete = async () => {
+  const { error } = await supabase
+    .from("expenses")
+    .delete()
+    .eq("id", selectedExpense.id);
+  
+  if (error) { console.error(error); return; }
+  
+  setDeleteDialogOpen(false);
+  setSelectedExpense(null);
+  fetchExpenses();
+};
 
   const totalAmount = expenses.reduce((sum, e) => sum + (e.total_amount || 0), 0);
   const thisMonth = new Date().toLocaleString("default", { month: "long", year: "numeric" });
