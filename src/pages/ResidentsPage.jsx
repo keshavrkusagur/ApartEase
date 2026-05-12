@@ -300,3 +300,4 @@ export default function ResidentsPage({ theme }) {
     </Box>
   );
 }
+

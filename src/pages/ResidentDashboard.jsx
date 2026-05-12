@@ -687,3 +687,4 @@ const handlePayNow = async (month, amount, existingPayment) => {
     </>
   );
 }
+

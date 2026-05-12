@@ -221,3 +221,4 @@ export default function NoticesPage({ theme }) {
     </Box>
   );
 }
+
