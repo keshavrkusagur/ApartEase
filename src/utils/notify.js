@@ -48,3 +48,4 @@ export const markAllAsRead = async (residentId) => {
     .eq("is_read", false);
 };
 
+

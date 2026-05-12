@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { supabase } from "../supabaseClient";
+import { supabase } from '../supabaseClient';
 import { useNavigate } from "react-router-dom";
 import { Box, Paper, TextField, Button, Typography } from "@mui/material";
 
@@ -41,5 +41,6 @@ export default function UpdatePassword() {
     </Box>
   );
 }
+
 
 

@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { supabase } from "../supabaseClient";
+import { supabase } from '../supabaseClient';
 
 export default function Signup() {
   const [fullName, setFullName] = useState("");
@@ -163,5 +163,6 @@ export default function Signup() {
     </div>
   );
 }
+
 
 

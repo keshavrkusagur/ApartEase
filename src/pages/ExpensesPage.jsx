@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { supabase } from "../supabaseClient";
+import { supabase } from '../supabaseClient';
 import { sendNotificationToAll } from "../utils/notify";
 
 import {
@@ -404,5 +404,6 @@ const handleDelete = async () => {
     </Box>
   );
 }
+
 
 

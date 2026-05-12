@@ -1,6 +1,6 @@
 import { useEffect, useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
-import { supabase } from "../supabaseClient";
+import { supabase } from '../supabaseClient';
 
 export default function AuthCallback() {
   const navigate = useNavigate();
@@ -85,5 +85,6 @@ export default function AuthCallback() {
     </div>
   );
 }
+
 
 

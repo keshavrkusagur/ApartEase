@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { supabase } from "../supabaseClient";
+import { supabase } from '../supabaseClient';
 import {
   Typography, Table, TableHead, TableRow, TableCell,
   TableBody, Button, Box, TextField, Paper, TableContainer,
@@ -300,5 +300,6 @@ export default function ResidentsPage({ theme }) {
     </Box>
   );
 }
+
 
 

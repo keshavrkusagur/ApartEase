@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { supabase } from "../supabaseClient";
+import { supabase } from '../supabaseClient';
 import {
   Box, Typography, Button, TextField, Dialog, DialogTitle,
   DialogContent, DialogActions, CircularProgress, Chip,
@@ -221,5 +221,6 @@ export default function NoticesPage({ theme }) {
     </Box>
   );
 }
+
 
 

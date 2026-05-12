@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { Link as RouterLink, useNavigate } from "react-router-dom";
-import { supabase } from "../supabaseClient";
+import { supabase } from '../supabaseClient';
 import { Alert, CircularProgress } from "@mui/material";
 
 export default function Login() {

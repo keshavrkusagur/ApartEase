@@ -323,3 +323,4 @@ export async function generateReceipt({ payment, expenses, profile }) {
   doc.save(filename);
 }
 
+
