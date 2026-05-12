@@ -203,3 +203,4 @@ export default function NotificationBell({ residentId, accentColor, isDark }) {
     </div>
   );
 }
+

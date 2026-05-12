@@ -47,3 +47,4 @@ export const markAllAsRead = async (residentId) => {
     .eq("resident_id", residentId)
     .eq("is_read", false);
 };
+

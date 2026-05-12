@@ -322,3 +322,4 @@ export async function generateReceipt({ payment, expenses, profile }) {
   const filename = `Receipt_Flat${profile?.flat_number}_${payment.month}.pdf`;
   doc.save(filename);
 }
+
