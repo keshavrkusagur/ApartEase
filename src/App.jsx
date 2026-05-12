@@ -1,4 +1,3 @@
-// Make sure your App.jsx looks like this:
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Login from "./pages/Login";
 import ResetPassword from "./pages/ResetPassword";
@@ -8,7 +7,7 @@ import ResidentDashboard from "./pages/ResidentDashboard";
 import AuthCallback from "./pages/AuthCallback";
 import Signup from "./pages/Signup";
 
-export default function App() {  // 👈 make sure "export default" is here
+export default function App() {
   return (
     <BrowserRouter>
       <Routes>
