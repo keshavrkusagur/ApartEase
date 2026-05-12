@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { supabase } from "./supabaseClient";
+import { supabase } from "../supabaseClient";
 import { sendNotification } from "../utils/notify";
 import {
   Box, Typography, Table, TableHead, TableRow, TableCell,
